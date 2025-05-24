@@ -1,5 +1,3 @@
-
-import ProfileComponent from '../components/ProfileComponent/profile.component';
 import HeaderComponent from '../components/header.component';
 import MainComponent from '../components/main.component';
 
