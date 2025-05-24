@@ -3,4 +3,5 @@ export interface IBook {
   title: string;
   author: string;
   year?: string;
+  firestoreId?: string; // Adicione esta linha
 }

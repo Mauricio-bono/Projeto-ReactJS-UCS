@@ -1,13 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BookForm from '../pages/BookForm.page';
 import BookList from '../pages/BookList.page';
 import { IBook } from '../interfaces/book.interface';
+import { db } from '../firebase';
+import { collection, getDocs, deleteDoc, query, where, doc } from "firebase/firestore";
 
 const MainComponent = () => {
     const [books, setBooks] = useState<IBook[]>([]);
 
+    useEffect(() => {
+        const fetchBooks = async () => {
+            const querySnapshot = await getDocs(collection(db, "books"));
+            const booksList: IBook[] = [];
+            querySnapshot.forEach((docSnap) => {
+                booksList.push({ ...(docSnap.data() as IBook), firestoreId: docSnap.id });
+            });
+            setBooks(booksList);
+        };
+        fetchBooks();
+    }, []);
+
     const addBook = (book: IBook) => {
         setBooks((prevBooks) => [...prevBooks, book]);
+    };
+
+    const handleDelete = async (id: string) => {
+        // Encontra o documento pelo campo id salvo no objeto (não o firestoreId)
+        const q = query(collection(db, "books"), where("id", "==", id));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach(async (docSnap) => {
+            await deleteDoc(doc(db, "books", docSnap.id));
+        });
+        setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     };
 
     return (
@@ -39,7 +63,7 @@ const MainComponent = () => {
                 <div style={{ marginBottom: "32px" }}>
                     <BookForm onAddBook={addBook} />
                 </div>
-                <BookList books={books} />
+                <BookList books={books} onDelete={handleDelete} />
             </div>
         </div>
     );

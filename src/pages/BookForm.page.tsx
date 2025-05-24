@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { IBook } from '../interfaces/book.interface';
+import { db } from '../firebase';
+import { collection, addDoc } from "firebase/firestore";
 
 interface BookFormProps {
   onAddBook: (book: IBook) => void;
@@ -10,15 +12,24 @@ const BookForm: React.FC<BookFormProps> = ({ onAddBook }) => {
   const [author, setAuthor] = useState('');
   const [year, setYear] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !author) return;
-    onAddBook({
+    const newBook: IBook = {
       id: Date.now().toString(),
       title,
       author,
       year,
-    });
+    };
+    onAddBook(newBook);
+
+    // Salva no Firestore
+    try {
+      await addDoc(collection(db, "books"), newBook);
+    } catch (error) {
+      alert("Erro ao salvar no Firebase!"+ (error as Error).message);
+    }
+
     setTitle('');
     setAuthor('');
     setYear('');
